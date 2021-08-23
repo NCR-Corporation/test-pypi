@@ -1,0 +1,19 @@
+name: Upload to PYPI on merge
+on:
+  pull_request:
+    types: [closed]
+env:
+  INTERNAL_REPO: ncr-swt-sre/gsre-pypi
+jobs:
+  upload:
+    name: Upload to Pypi server
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Upload
+        run: |
+          echo "Upload to prod server"
+          echo "${GITHUB_REF#refs/heads/}"
+          gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f pypi_server='prod'
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}

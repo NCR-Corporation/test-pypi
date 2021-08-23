@@ -1,0 +1,87 @@
+name: Labeled Events
+on:
+  pull_request:
+    types: [labeled, opened, synchronize, reopened]
+env:
+  INTERNAL_REPO: ncr-swt-sre/gsre-pypi
+  TESTS_PASSED: tests-passed
+  SONAR_FAILED: sonar-failed
+  COV_FAILED: coverity-failed
+  LICENSE_LABEL: has-license
+  VERSION_LABEL: updated-version
+  TESTPYPI_UPLOADED: testpypi-uploaded
+  TESTPYPI_UPLOAD_FAILED: testpypi-upload-failed
+jobs:
+  verify:
+    name: Verify author/labeler
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get actors permissions
+        if: github.event.action == 'labeled'
+        run: |
+          perm=$(gh api "/repos/${{github.repository}}/collaborators/${{github.actor}}/permission" --jq '.permission')
+          if [[ "$perm" != 'admin' ]]; then
+            echo "User does not have appropriate rights to label the pr"
+            gh pr edit ${{github.event.number}} --remove-label "${{github.event.label.name}}" -R ${{github.repository}}
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - run: echo "Done"
+  sonar-cover:
+    name: Sonar and Coverity Scans
+    needs: [verify]
+    runs-on: ubuntu-latest
+    if: (contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.TESTS_PASSED || github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED ))
+    steps:
+      - name: Tests Passed
+        if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || (github.event.action == 'labeled' && github.event.label.name == env.TESTS_PASSED)
+        run: echo "Success"
+      - name: One or more tests have failed
+        if: (contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED))
+        run: |
+          echo "Failure"
+          exit 1
+  upload-triggered:
+    name: Upload to TestPypi server
+    needs: [verify]
+    runs-on: ubuntu-latest
+    if: github.event.action == 'labeled' && github.event.label.name == 'upload2testpypi'
+    steps:
+      - name: Prevent upload before tests have passed
+        if: (!contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED))
+        run: echo "Cannot upload to testpypi until all tests have passed" && exit 1
+      - name: Prevent upload without license
+        if: (!contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL))
+        run: echo "Cannot upload to testpypi without a license" && exit 1
+      - name: Prevent upload without updated version number
+        if: (!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL))
+        run: echo "Cannot upload to testpypi updating the version number" && exit 1
+      - name: Trigger Upload
+        run: gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f pypi_server='test'
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+  testpypi-upload:
+    name: Verify Successful Upload to testpypi
+    needs: [verify]
+    runs-on: ubuntu-latest
+    if: (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+    steps:
+      - name: Test Uploaded Package
+        if: (github.event.label.name == env.TESTPYPI_UPLOADED || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+        run: |
+          # TODO add some tests of the package and fail this if they don't pass
+          echo "Success"
+      - name: Upload Failed
+        if: github.event.label.name == env.TESTPYPI_UPLOAD_FAILED
+        run: |
+          echo "Failure"
+          exit 1
+      - name: Stale testpypi
+        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+        run: |
+          echo "testpypi upload made stale by new commit"
+          gh pr edit ${{github.event.number}} --remove-label env.TESTPYPI_UPLOADED -R ${{github.repository}}
+          exit 1
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}

@@ -1,0 +1,95 @@
+
+name: Pull Request Events
+on: 
+  pull_request:
+   types: [opened, synchronize, reopened]
+env:
+  SONAR_PROJECT_KEY: gsre-pypi-test
+  SONAR_TOKEN_KEY: gsre-pypi-test-sonar-token
+  COV_STREAM: cov-gsre-pypi-test
+  LICENSE_FILE: LICENSE
+  VERSION_FILE: src/__version__.py
+  LICENSE_LABEL: has-license
+  VERSION_LABEL: updated-version
+  INTERNAL_REPO: ncr-swt-sre/gsre-pypi
+jobs:
+  trigger_sonar:
+    name: Run Sonar and Coverity Scans
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Sonar and coverity test
+        run: |
+          gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+  license_check:
+    name: Check for License
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2          
+      - name: Check for license
+        run: |
+          [ ! -f "$LICENSE_FILE" ] && echo "Missing a license" && exit 1
+          if [ -z "$(grep -o 'Apache License' $LICENSE_FILE)" ] || [ -z "$(grep -o 'Version 2.0' $LICENSE_FILE)" ]; then
+            echo "Incorrect license provided. Looking for Apache License Version 2.0" && exit 1
+          fi
+      - name: Add label
+        if: "!contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)"
+        run: gh pr edit ${{github.event.number}} --add-label "$LICENSE_LABEL" -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - name: Remove label if necessary
+        if: failure() && contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)
+        run: gh pr edit ${{github.event.number}} --remove-label "$LICENSE_LABEL" -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+  version_check:
+    name: Check for updated version
+    runs-on: ubuntu-latest
+    steps:
+      # START REMOVE
+      - name: Check if version label exists
+        id: label_check
+        if: contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)
+        run: echo "Success"
+      - uses: actions/checkout@v2
+        if: steps.label_check.outcome == 'skipped'
+      # END REMOVE AFTER SWITCH
+      - name: Check if version updated
+        if: steps.label_check.outcome == 'skipped' # REMOVE AFTER SWITCH
+        run: |
+          [ ! -f "$VERSION_FILE" ] && echo "Missing version file" && exit 1
+
+          cat <<EOT >> get_package_data.py
+          attr = {}
+          with open("$VERSION_FILE") as f:
+              exec(f.read(),attr)
+          print(f"{attr['__title__'].replace('_', '-')},{attr['__version__']}")
+          EOT
+          IFS=, read package_name version  <<< "$(python3 get_package_data.py)"
+
+          printf "Package: ${package_name}\nVersion: ${version}\n"
+          # TODO switch to prod pypi after testing finished
+          # exists=$(pip3 install ${package_name}==${version} &>/dev/null && echo "true" || echo "false")
+          exists=$(pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ${package_name}==${version} &>/dev/null && echo "true" || echo "false")
+          [ ${exists} == 'true' ] && echo "Version already exists" && exit 1
+          # versions=$(pip3 install ${package_name}== 2>&1 1>/dev/null | sed 's/.*from versions: //' | tr -d ')' | sed 's/ERROR:.*//')
+          versions=$(pip3 install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple ${package_name}== 2>&1 1>/dev/null | sed 's/.*from versions: //' | tr -d ')' | sed 's/ERROR:.*//')
+          echo "testpypi versions: $versions"
+
+          [ "$versions" == *"$version"* ] && echo "Version already exists" && exit 1
+          [ "$versions"  == "none" ] && echo "New package" && exit 0
+          latest=$(echo "$versions, $version" | tr ',' '\n' | tr -d ' ' | sort -rV | head -n 1)
+          [ "$version" != "$latest" ] && echo "$version would not be the latest version" && exit 1
+          echo "Updated Version"
+
+      - name: Add Label
+        if: "!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)"
+        run: gh pr edit ${{github.event.number}} --add-label "$VERSION_LABEL" -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - name: Remove label if necessary
+        if: failure() && contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)
+        run: gh pr edit ${{github.event.number}} --remove-label "$VERSION_LABEL" -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}

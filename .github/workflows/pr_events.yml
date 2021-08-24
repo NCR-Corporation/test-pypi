@@ -11,7 +11,7 @@ env:
   VERSION_FILE: src/__version__.py
   LICENSE_LABEL: has-license
   VERSION_LABEL: updated-version
-  INTERNAL_REPO: ncr-swt-sre/gsre-pypi
+  INTERNAL_REPO: NCR-Corporation/gsre-pypi-internal
 jobs:
   trigger_sonar:
     name: Run Sonar and Coverity Scans

@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [closed]
 env:
-  INTERNAL_REPO: NCR-Corporation/gsre-pypi-internal
+  INTERNAL_REPO: NCR-Corporation/gsre-internal
 jobs:
   upload:
     name: Upload to Pypi server

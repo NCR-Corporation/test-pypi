@@ -67,7 +67,7 @@ jobs:
     name: Verify Successful Upload to testpypi
     needs: [verify]
     runs-on: ubuntu-latest
-    if: (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+#     if: (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
     steps:
       - name: Test Uploaded Package
         if: (github.event.label.name == env.TESTPYPI_UPLOADED || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))

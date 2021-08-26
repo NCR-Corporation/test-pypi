@@ -32,13 +32,15 @@ jobs:
     name: Sonar and Coverity Scans
     needs: [verify]
     runs-on: ubuntu-latest
-    if: "contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.TESTS_PASSED || github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED ))"
+    # if: "contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.TESTS_PASSED || github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED ))"
     steps:
+      - name: Print env vars
+        run: echo "${{env.TESTS_PASSED}}"
       - name: Tests Passed
-        if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || (github.event.action == 'labeled' && github.event.label.name == env.TESTS_PASSED)
+        # if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || (github.event.action == 'labeled' && github.event.label.name == env.TESTS_PASSED)
         run: echo "Success"
       - name: One or more tests have failed
-        if: (contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED))
+        # if: (contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED))
         run: |
           echo "Failure"
           exit 1

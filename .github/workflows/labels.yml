@@ -20,6 +20,9 @@ jobs:
   verify:
     name: Verify author/labeler
     runs-on: ubuntu-latest
+    outputs:
+      run_sonar: ${{ steps.jobs.outputs.run_sonar }}
+      tests_passed: ${{ steps.jobs.outputs.tests_passed }}
     steps:
       - name: Get actors permissions
         if: github.event.action == 'labeled'
@@ -33,6 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
       - name: Determine which jobs to run
+        id: jobs
         run: |
           # Sonar
           echo "${{github.event.label.name}}"
@@ -54,20 +58,25 @@ jobs:
               TESTS_PASSED=false
             fi
           fi
+          echo "::set-output name=run_sonar::$RUN_SONAR"
+          echo "::set-output name=tests_passed::$TESTS_PASSED"
           echo "RUN_SONAR = $RUN_SONAR TESTS_PASSED=$TESTS_PASSED"
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]
     runs-on: ubuntu-latest
     # if: ${{(contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.TESTS_PASSED || github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED ))}}
+    if: needs.verify.outputs.run_sonar
     steps:
       - name: Print env vars
         run: echo "${{env.TESTS_PASSED}}"
       - name: Tests Passed
         # if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || (github.event.action == 'labeled' && github.event.label.name == env.TESTS_PASSED)
+        if: needs.verify.outputs.tests_passed == 'true'
         run: echo "Success"
       - name: One or more tests have failed
         # if: (contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED))
+        if: needs.verify.outputs.tests_passed == 'false'
         run: |
           echo "Failure"
           exit 1

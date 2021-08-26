@@ -46,7 +46,7 @@ jobs:
           if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}}; then
             echo "Test label found in existing labels"
             RUN_SONAR=true
-          elif '${{github.event.action}}' == 'labeled' && ( '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' || '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' ); then
+          elif [ '${{github.event.action}}' == 'labeled' ] && ( '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' || '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' ); then
             echo "Test label found in current label"
             RUN_SONAR=true
           else
@@ -63,18 +63,18 @@ jobs:
 
           # Test Pypi Upload
           TESTPYPI_UPLOAD="false"
-          if ${{github.event.action}} == 'labeled' && ( '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ) ; then
+          if [ '${{github.event.action}}'' == 'labeled' ] && ( '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ) ; then
             TESTPYPI_UPLOAD="true"
-          elif '${{github.event.action}}' == 'synchronize' && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+          elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
             TESTPYPI_UPLOAD="true"
           fi
 
           TESTPYPI_RESULT=""
-          if '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+          if [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} ] || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
             TESTPYPI_RESULT="success"
-          elif '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}}; then
+          elif [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ]; then
             TESTPYPI_RESULT="failure"
-          elif '${{github.event.action}}' == 'synchronize' && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+          elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
             TESTPYPI_RESULT="stale"
           fi
 

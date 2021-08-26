@@ -63,7 +63,7 @@ jobs:
 
           # Test Pypi Upload
           TESTPYPI_UPLOAD="false"
-          if [ '${{github.event.action}}'' == 'labeled' ] && ( '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ) ; then
+          if [ '${{github.event.action}}' == 'labeled' ] && ( '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ) ; then
             TESTPYPI_UPLOAD="true"
           elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
             TESTPYPI_UPLOAD="true"

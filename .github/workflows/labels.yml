@@ -60,9 +60,8 @@ jobs:
               TESTS_PASSED=false
             fi
           fi
+
           # Test Pypi Upload
-          (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
-          
           TESTPYPI_UPLOAD="false"
           if [ ${{github.event.action}} == 'labeled' ] && ( [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} ] || [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ] ); then
             TESTPYPI_UPLOAD="true"

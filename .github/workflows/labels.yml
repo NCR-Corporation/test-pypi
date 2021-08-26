@@ -46,7 +46,7 @@ jobs:
           if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}}; then
             echo "Test label found in existing labels"
             RUN_SONAR=true
-          elif [[ [ ${{github.event.action}} == 'labeled' ] && ( [ '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' ] || [ '${{github.event.label.name}}' == '${{env.COV_FAILED}}' ] || [ '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' ] ) ]]; then
+          elif [[ ${{github.event.action}} == 'labeled' && ( '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' || '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}') ]]; then
             echo "Test label found in current label"
             RUN_SONAR=true
           else
@@ -56,7 +56,7 @@ jobs:
           if [ ${RUN_SONAR} == 'true' ]; then
             if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ( [ '${{github.event.action}}' == 'labeled' ] && [ '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' ] ); then
               TESTS_PASSED=true
-            elif [[ ( ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} ) || ( [ '${{github.event.action}}' == 'labeled' ] && ( [ '${{github.event.label.name}}' == '${{env.COV_FAILED}}' ] || [ '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' ] )) ]]; then
+            elif [[ ( ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} ) || ( '${{github.event.action}}' == 'labeled' && ( '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' )) ]]; then
               TESTS_PASSED=false
             fi
           fi

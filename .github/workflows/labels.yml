@@ -23,6 +23,8 @@ jobs:
     outputs:
       run_sonar: ${{ steps.jobs.outputs.run_sonar }}
       tests_passed: ${{ steps.jobs.outputs.tests_passed }}
+      testpypi_upload: ${{ steps.jobs.outputs.testpypi_upload }}
+      testpypi_result: ${{ steps.jobs.outputs.testpypi_result }}
     steps:
       - name: Get actors permissions
         if: github.event.action == 'labeled'
@@ -58,9 +60,30 @@ jobs:
               TESTS_PASSED=false
             fi
           fi
+          # Test Pypi Upload
+          (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+          
+          TESTPYPI_UPLOAD="false"
+          if [ ${{github.event.action}} == 'labeled' ] && ( [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} ] || [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ] ); then
+            TESTPYPI_UPLOAD="true"
+          elif [ '${{github.event.action}}' == 'synchronize' && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}); then
+            TESTPYPI_UPLOAD="true"
+          fi
+
+          TESTPYPI_RESULT=""
+          if [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+            TESTPYPI_RESULT="success"
+          elif [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ]; then
+            TESTPYPI_RESULT="failure"
+          elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+            TESTPYPI_RESULT="stale"
+          fi
+
           echo "::set-output name=run_sonar::$RUN_SONAR"
           echo "::set-output name=tests_passed::$TESTS_PASSED"
-          echo "RUN_SONAR = $RUN_SONAR TESTS_PASSED=$TESTS_PASSED"
+          echo "::set-output name=testpypi_upload::$TESTPYPI_UPLOAD"
+          echo "::set-output name=testpypi_result::$TESTPYPI_RESULT"
+          echo "RUN_SONAR = $RUN_SONAR TESTS_PASSED=$TESTS_PASSED TESTPYPI_UPLOAD=$TESTPYPI_UPLOAD TESTPYPI_RESULT=$TESTPYPI_RESULT"
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]
@@ -104,19 +127,23 @@ jobs:
     needs: [verify]
     runs-on: ubuntu-latest
 #     if: (github.event.action == 'labeled' && (github.event.label.name == env.TESTPYPI_UPLOADED || github.event.label.name == env.TESTPYPI_UPLOAD_FAILED )) || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+    if: needs.verify.outputs.testpypi_upload == 'true'
     steps:
       - name: Test Uploaded Package
-        if: (github.event.label.name == env.TESTPYPI_UPLOADED || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+        # if: (github.event.label.name == env.TESTPYPI_UPLOADED || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED))
+        if: needs.verify.outputs.testpypi_result == 'success'
         run: |
           # TODO add some tests of the package and fail this if they don't pass
           echo "Success"
       - name: Upload Failed
-        if: github.event.label.name == env.TESTPYPI_UPLOAD_FAILED
+        # if: github.event.label.name == env.TESTPYPI_UPLOAD_FAILED
+        if: needs.verify.outputs.testpypi_result == 'failure'
         run: |
           echo "Failure"
           exit 1
       - name: Stale testpypi
-        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+        # if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+        if: needs.verify.outputs.testpypi_result == 'stale'
         run: |
           echo "testpypi upload made stale by new commit"
           gh pr edit ${{github.event.number}} --remove-label env.TESTPYPI_UPLOADED -R ${{github.repository}}

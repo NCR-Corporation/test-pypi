@@ -70,11 +70,11 @@ jobs:
           fi
 
           TESTPYPI_RESULT=""
-          if [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+          if [[ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} ]]; then
             TESTPYPI_RESULT="success"
-          elif [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ]; then
+          elif [[ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ]]; then
             TESTPYPI_RESULT="failure"
-          elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
+          elif [[ '${{github.event.action}}' == 'synchronize' && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} ]]; then
             TESTPYPI_RESULT="stale"
           fi
 

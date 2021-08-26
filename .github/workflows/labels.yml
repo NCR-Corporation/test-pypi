@@ -66,7 +66,7 @@ jobs:
     needs: [verify]
     runs-on: ubuntu-latest
     # if: ${{(contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED) || contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)) || (github.event.action == 'labeled' && (github.event.label.name == env.TESTS_PASSED || github.event.label.name == env.COV_FAILED || github.event.label.name == env.SONAR_FAILED ))}}
-    if: needs.verify.outputs.run_sonar
+    if: needs.verify.outputs.run_sonar == 'true'
     steps:
       - name: Print env vars
         run: echo "${{env.TESTS_PASSED}}"

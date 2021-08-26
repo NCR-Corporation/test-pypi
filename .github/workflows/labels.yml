@@ -4,7 +4,7 @@ on:
     types: [labeled, opened, synchronize, reopened]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
-  TESTS_PASSED: 'tests-passed'
+  TESTS_PASSED: tests-passed
   SONAR_FAILED: sonar-failed
   COV_FAILED: coverity-failed
   LICENSE_LABEL: has-license
@@ -32,7 +32,7 @@ jobs:
     name: Sonar and Coverity Scans
     needs: [verify]
     runs-on: ubuntu-latest
-    if: (contains(github.event.pull_request.labels.*.name, '${{env.TESTS_PASSED}}') || contains(github.event.pull_request.labels.*.name, '${{env.SONAR_FAILED}}') || contains(github.event.pull_request.labels.*.name, '${{env.COV_FAILED}}')) || (github.event.action == 'labeled' && (github.event.label.name == '${{env.TESTS_PASSED}}' || github.event.label.name == '${{env.COV_FAILED}}' || github.event.label.name == '${{env.SONAR_FAILED}}' ))
+#     if: (contains(github.event.pull_request.labels.*.name, '${{env.TESTS_PASSED}}') || contains(github.event.pull_request.labels.*.name, '${{env.SONAR_FAILED}}') || contains(github.event.pull_request.labels.*.name, '${{env.COV_FAILED}}')) || (github.event.action == 'labeled' && (github.event.label.name == '${{env.TESTS_PASSED}}' || github.event.label.name == '${{env.COV_FAILED}}' || github.event.label.name == '${{env.SONAR_FAILED}}' ))
     steps:
       - name: Print env vars
         run: echo "${{env.TESTS_PASSED}}"

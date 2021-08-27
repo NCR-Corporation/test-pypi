@@ -16,7 +16,7 @@ env:
 jobs:
   trigger_sonar:
     name: Run Sonar and Coverity Scans
-    if: (!contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL))
+    if: '!contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)'
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test
@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:
     name: Check for License
-    if: (!contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL))
+    if: '!contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -37,7 +37,7 @@ jobs:
             echo "Incorrect license provided. Looking for Apache License Version 2.0" && exit 1
           fi
       - name: Add label
-        if: (!contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL))
+        if: '!contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)'
         run: gh pr edit ${{github.event.number}} --add-label "$LICENSE_LABEL" -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
@@ -88,7 +88,7 @@ jobs:
           echo "Updated Version"
 
       - name: Add Label
-        if: (!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL))
+        if: '!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)'
         run: gh pr edit ${{github.event.number}} --add-label "$VERSION_LABEL" -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

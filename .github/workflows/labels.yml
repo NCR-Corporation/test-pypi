@@ -11,6 +11,7 @@ env:
   VERSION_LABEL: updated-version
   TESTPYPI_UPLOADED: testpypi-uploaded
   TESTPYPI_UPLOAD_FAILED: testpypi-upload-failed
+  NON_RELEASE_LABEL: non-release
 jobs:
   print:
     runs-on: ubuntu-latest
@@ -41,7 +42,6 @@ jobs:
         id: jobs
         run: |
           # Sonar
-          echo "${{github.event.label.name}}"
           RUN_SONAR=false
           if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}}; then
             RUN_SONAR=true
@@ -77,6 +77,12 @@ jobs:
             TESTPYPI_RESULT="stale"
           fi
 
+          if ${{contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)}}; then
+            RUN_SONAR=false
+            TESTS_PASSED=false
+            TEST_PYPI_RESULT=true
+            TEST_PYPI_RESULT=skip
+          fi
           echo "::set-output name=run_sonar::$RUN_SONAR"
           echo "::set-output name=tests_passed::$TESTS_PASSED"
           echo "::set-output name=testpypi_upload::$TESTPYPI_UPLOAD"
@@ -137,7 +143,14 @@ jobs:
         if: needs.verify.outputs.testpypi_result == 'stale'
         run: |
           echo "testpypi upload made stale by new commit"
-          gh pr edit ${{github.event.number}} --remove-label env.TESTPYPI_UPLOADED -R ${{github.repository}}
+          gh pr edit ${{github.event.number}} --remove-label $TESTPYPI_UPLOADED -R ${{github.repository}}
           exit 1
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - name: Non release
+        if: needs.verify.outputs.testpypi_result == 'skip'
+        run: |
+          echo "Non-Release PR"
+          if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)}} ||  ${{contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)}}; then
+            gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED -R ${{github.repository}}
+          fi

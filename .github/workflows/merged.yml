@@ -4,10 +4,16 @@ on:
     types: [closed]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
+  TESTPYPI_UPLOADED: testpypi-uploaded
 jobs:
+  print:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print context
+        run: echo "${{toJSON(github)}}"
   upload:
     name: Upload to Pypi server
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Upload

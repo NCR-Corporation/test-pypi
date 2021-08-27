@@ -28,7 +28,8 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:
     name: Check for License
-    # if: ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
+    if: |
+      !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -50,7 +51,8 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   version_check:
     name: Check for updated version
-    if: ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
+    if: |
+      !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
     runs-on: ubuntu-latest
     steps:
       # START REMOVE

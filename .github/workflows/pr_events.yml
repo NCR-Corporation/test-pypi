@@ -40,6 +40,11 @@ jobs:
         if: |
           !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
         run: echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
+  print-outputs:
+    runs-on: ubuntu-latest
+    needs: [env-vars]
+    steps:
+      - run: echo "${{needs.env-vars.outputs.non_release_label}}"
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans

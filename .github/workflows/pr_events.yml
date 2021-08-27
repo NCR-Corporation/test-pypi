@@ -28,7 +28,7 @@ jobs:
   license_check:
     name: Check for License
     if: |
-      !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
+      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -51,7 +51,7 @@ jobs:
   version_check:
     name: Check for updated version
     if: |
-      !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
+      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
     runs-on: ubuntu-latest
     steps:
       # START REMOVE

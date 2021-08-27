@@ -14,6 +14,13 @@ env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   NON_RELEASE_LABEL: non-release
 jobs:
+  env-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      non_release_label: ${{env.NON_RELEASE_LABEL}}  
+    steps:
+      - run: echo "Hello world"
+
   print:
     runs-on: ubuntu-latest
     steps:
@@ -34,9 +41,12 @@ jobs:
           !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
         run: echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
   trigger_sonar:
+    needs: [env-vars]
     name: Run Sonar and Coverity Scans
     # if: |
       # contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
+    if: |
+      !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test
@@ -47,7 +57,9 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:
     name: Check for License
-    if: env.NON_RELEASE_LABEL == 'non-release'
+    needs: [env-vars]
+    if: |
+      !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -69,8 +81,9 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   version_check:
     name: Check for updated version
+    needs: [env-vars]
     if: |
-      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
+      !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
     runs-on: ubuntu-latest
     steps:
       # START REMOVE

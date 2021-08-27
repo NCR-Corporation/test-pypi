@@ -12,6 +12,7 @@ env:
   LICENSE_LABEL: has-license
   VERSION_LABEL: updated-version
   INTERNAL_REPO: NCR-Corporation/gsre-internal
+  NON_RELEASE_LABEL: non-release
 jobs:
   trigger_sonar:
     name: Run Sonar and Coverity Scans

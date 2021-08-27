@@ -47,8 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:
     name: Check for License
-    if: |
-      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
+    if: env.NON_RELEASE_LABEL == 'non-release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          

@@ -14,15 +14,33 @@ env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   NON_RELEASE_LABEL: non-release
 jobs:
+  print:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print context
+        run: echo "${{toJSON(github)}}"
+      - name: Test contains 1
+        if: |
+          !contains(github.event.pull_request.labels.*.name, "env.NON_RELEASE_LABEL")
+        run: echo ${{ !contains(github.event.pull_request.labels.*.name, "env.NON_RELEASE_LABEL") }}
+      - name: Test contains 2
+        if: |
+          !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
+        run: echo ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
+      - name: Test contains 3
+        if: |
+          !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
+        run: echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
   trigger_sonar:
     name: Run Sonar and Coverity Scans
     if: |
-      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
+      !contains(github.event.pull_request.labels.*.name, "env.NON_RELEASE_LABEL")
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test
         run: |
-          gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
+          # gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
+          echo "Skipping this for now"
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:

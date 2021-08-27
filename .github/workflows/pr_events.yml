@@ -21,13 +21,9 @@ jobs:
         run: echo "${{toJSON(github)}}"
       - name: Test contains 1
         if: |
-          !contains(github.event.pull_request.labels.*.name, "env.NON_RELEASE_LABEL")
-        run: echo ${{ !contains(github.event.pull_request.labels.*.name, "env.NON_RELEASE_LABEL") }}
-      - name: Test contains 2
-        if: |
           !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
         run: echo ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
-      - name: Test contains 3
+      - name: Test contains 2
         if: |
           !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
         run: echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}

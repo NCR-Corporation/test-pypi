@@ -50,9 +50,8 @@ jobs:
     name: Run Sonar and Coverity Scans
     # if: |
       # contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
-    if: env.NON_RELEASE_LABEL
-    # if: |
-    #   !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
+    # if: env.NON_RELEASE_LABEL
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test

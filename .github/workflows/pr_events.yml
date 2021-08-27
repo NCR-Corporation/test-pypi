@@ -22,7 +22,13 @@ jobs:
       - name: Test contains 1
         if: |
           !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
-        run: echo ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
+        run: |
+          echo ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
+          echo ${{ contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
+          echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
+          echo ${{ contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
+          ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }} >> random_file.txt
+          cat random_file.txt
       - name: Test contains 2
         if: |
           !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
@@ -30,7 +36,7 @@ jobs:
   trigger_sonar:
     name: Run Sonar and Coverity Scans
     if: |
-      !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
+      !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test

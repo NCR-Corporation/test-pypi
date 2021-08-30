@@ -6,14 +6,17 @@ env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   TESTPYPI_UPLOADED: testpypi-uploaded
 jobs:
-  print:
+  # wf level env vars are not accessible to job level if conditions but outputs of jobs in needs are
+  env-vars:
     runs-on: ubuntu-latest
+    outputs:
+      testpypi_uploaded: ${{env.TESTPYPI_UPLOADED}}
     steps:
-      - name: Print context
-        run: echo "${{toJSON(github)}}"
+      - run: echo "${{toJSON(github)}}"
   upload:
     name: Upload to Pypi server
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+    needs: [env-vars]
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, needs.outputs.env-vars.testpypi_uploaded)
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Upload

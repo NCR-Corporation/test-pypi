@@ -14,43 +14,16 @@ env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   NON_RELEASE_LABEL: non-release
 jobs:
+  # wf level env vars are not accessible to job level if conditions but outputs of jobs in needs are
   env-vars:
     runs-on: ubuntu-latest
     outputs:
       non_release_label: ${{env.NON_RELEASE_LABEL}}  
     steps:
       - run: echo "Hello world"
-
-  print:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print context
-        run: echo "${{toJSON(github)}}"
-      - name: Test contains 1
-        if: |
-          !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL')
-        run: |
-          echo ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
-          echo ${{ contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }}
-          echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
-          echo ${{ contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
-          ${{ !contains(github.event.pull_request.labels.*.name, 'env.NON_RELEASE_LABEL') }} >> random_file.txt
-          cat random_file.txt
-      - name: Test contains 2
-        if: |
-          !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
-        run: echo ${{ !contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL) }}
-  print-outputs:
-    runs-on: ubuntu-latest
-    needs: [env-vars]
-    steps:
-      - run: echo "${{needs.env-vars.outputs.non_release_label}}"
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans
-    # if: |
-      # contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)
-    # if: env.NON_RELEASE_LABEL
     if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
@@ -63,8 +36,7 @@ jobs:
   license_check:
     name: Check for License
     needs: [env-vars]
-    if: |
-      !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -87,8 +59,7 @@ jobs:
   version_check:
     name: Check for updated version
     needs: [env-vars]
-    if: |
-      !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       # START REMOVE
@@ -128,7 +99,7 @@ jobs:
           echo "Updated Version"
 
       - name: Add Label
-        if: ${{ !contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL) }}
+        if: "!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)"
         run: gh pr edit ${{github.event.number}} --add-label "$VERSION_LABEL" -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

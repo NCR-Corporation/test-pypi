@@ -12,18 +12,31 @@ env:
   LICENSE_LABEL: has-license
   VERSION_LABEL: updated-version
   INTERNAL_REPO: NCR-Corporation/gsre-internal
+  NON_RELEASE_LABEL: non-release
 jobs:
+  # wf level env vars are not accessible to job level if conditions but outputs of jobs in needs are
+  env-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      non_release_label: ${{env.NON_RELEASE_LABEL}}  
+    steps:
+      - run: echo "Hello world"
   trigger_sonar:
+    needs: [env-vars]
     name: Run Sonar and Coverity Scans
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test
         run: |
-          gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
+          # gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
+          echo "Skipping this for now"
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:
     name: Check for License
+    needs: [env-vars]
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2          
@@ -34,7 +47,7 @@ jobs:
             echo "Incorrect license provided. Looking for Apache License Version 2.0" && exit 1
           fi
       - name: Add label
-        if: "!contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)"
+        if: ${{ !contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL) }}
         run: gh pr edit ${{github.event.number}} --add-label "$LICENSE_LABEL" -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
@@ -45,6 +58,8 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   version_check:
     name: Check for updated version
+    needs: [env-vars]
+    if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       # START REMOVE

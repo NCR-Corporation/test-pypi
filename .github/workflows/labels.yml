@@ -26,6 +26,7 @@ jobs:
       testpypi_upload_failed: ${{env.TESTPYPI_UPLOAD_FAILED}}
       non_release_label: ${{env.NON_RELEASE_LABEL}}
     steps:
+      - run: echo "${{toJSON(github)}}"
       - name: Get actors permissions
         if: github.event.action == 'labeled'
         run: |

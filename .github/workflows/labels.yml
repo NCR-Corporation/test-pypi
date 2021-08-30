@@ -170,3 +170,5 @@ jobs:
           if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)}} ||  ${{contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)}}; then
             gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED -R ${{github.repository}}
           fi
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}

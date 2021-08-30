@@ -1,6 +1,6 @@
 name: Labeled Events
 on:
-  pull_request:
+  pull_request_target:
     types: [labeled, opened, synchronize, reopened]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
@@ -14,19 +14,10 @@ env:
   TESTPYPI_UPLOAD_FAILED: testpypi-upload-failed
   NON_RELEASE_LABEL: non-release
 jobs:
-  print:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print context
-        run: echo "${{toJSON(github)}}"
   verify:
     name: Verify author/labeler
     runs-on: ubuntu-latest
     outputs:
-      # run_sonar: ${{ steps.jobs.outputs.run_sonar }}
-      # tests_passed: ${{ steps.jobs.outputs.tests_passed }}
-      # testpypi_upload: ${{ steps.jobs.outputs.testpypi_upload }}
-      # testpypi_result: ${{ steps.jobs.outputs.testpypi_result }}
       tests_passed: ${{env.TESTS_PASSED}}
       sonar_failed: ${{env.SONAR_FAILED}}
       cov_failed: ${{env.COV_FAILED}}
@@ -50,56 +41,6 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
-      # - name: Determine which jobs to run
-      #   id: jobs
-      #   run: |
-      #     # Sonar
-      #     RUN_SONAR=false
-      #     if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}}; then
-      #       RUN_SONAR=true
-      #     elif [ '${{github.event.action}}' == 'labeled' ] && ( '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' || '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' ); then
-      #       echo "Test label found in current label"
-      #       RUN_SONAR=true
-      #     else
-      #       echo "No test labels found"
-      #     fi
-      #     TESTS_PASSED=""
-      #     if [ ${RUN_SONAR} == 'true' ]; then
-      #       if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ( '${{github.event.action}}' == 'labeled' && '${{github.event.label.name}}' == '${{env.TESTS_PASSED}}' ); then
-      #         TESTS_PASSED=true
-      #       elif [[ ( ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} ) || ( '${{github.event.action}}' == 'labeled' && ( '${{github.event.label.name}}' == '${{env.COV_FAILED}}' || '${{github.event.label.name}}' == '${{env.SONAR_FAILED}}' )) ]]; then
-      #         TESTS_PASSED=false
-      #       fi
-      #     fi
-
-      #     # Test Pypi Upload
-      #     TESTPYPI_UPLOAD="false"
-      #     if [ '${{github.event.action}}' == 'labeled' ] && ( '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} || '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ) ; then
-      #       TESTPYPI_UPLOAD="true"
-      #     elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
-      #       TESTPYPI_UPLOAD="true"
-      #     fi
-
-      #     TESTPYPI_RESULT=""
-      #     if [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOADED}} ] || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
-      #       TESTPYPI_RESULT="success"
-      #     elif [ '${{github.event.label.name}}' == ${{env.TESTPYPI_UPLOAD_FAILED}} ]; then
-      #       TESTPYPI_RESULT="failure"
-      #     elif [ '${{github.event.action}}' == 'synchronize' ] && ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}}; then
-      #       TESTPYPI_RESULT="stale"
-      #     fi
-
-      #     if ${{contains(github.event.pull_request.labels.*.name, env.NON_RELEASE_LABEL)}}; then
-      #       RUN_SONAR=false
-      #       TESTS_PASSED=false
-      #       TEST_PYPI_RESULT=true
-      #       TEST_PYPI_RESULT=skip
-      #     fi
-      #     echo "::set-output name=run_sonar::$RUN_SONAR"
-      #     echo "::set-output name=tests_passed::$TESTS_PASSED"
-      #     echo "::set-output name=testpypi_upload::$TESTPYPI_UPLOAD"
-      #     echo "::set-output name=testpypi_result::$TESTPYPI_RESULT"
-      #     echo "RUN_SONAR = $RUN_SONAR TESTS_PASSED=$TESTS_PASSED TESTPYPI_UPLOAD=$TESTPYPI_UPLOAD TESTPYPI_RESULT=$TESTPYPI_RESULT"
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]
@@ -168,6 +109,7 @@ jobs:
         run: |
           echo "Non-Release PR"
           if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)}} ||  ${{contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)}}; then
+            echo "Removing label(s)"
             gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED -R ${{github.repository}}
           fi
         env:

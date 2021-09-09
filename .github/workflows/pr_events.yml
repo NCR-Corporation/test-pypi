@@ -20,7 +20,7 @@ jobs:
     outputs:
       non_release_label: ${{env.NON_RELEASE_LABEL}}  
     steps:
-      - run: echo "Hello world"
+      - run: echo "${{toJSON(github)}}"
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans
@@ -29,6 +29,7 @@ jobs:
     steps:
       - name: Call Sonar and coverity test
         run: |
+          echo "branch ${GITHUB_REF#refs/heads/}"
           gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
           echo "Skipping this for now"
         env:

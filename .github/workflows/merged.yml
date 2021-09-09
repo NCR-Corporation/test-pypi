@@ -22,7 +22,7 @@ jobs:
       - name: Trigger Upload
         run: |
           echo "Upload to prod server"
-          echo "${GITHUB_REF#refs/heads/}"
-          gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f pypi_server='prod'
+          echo "branch ${{github.base_ref}}"
+          gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=$"${{github.base_ref}}" -f pr_num=${{github.event.number}} -f pypi_server='prod'
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

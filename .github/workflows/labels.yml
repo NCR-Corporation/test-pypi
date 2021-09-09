@@ -81,7 +81,10 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
       - name: Trigger Upload
         run: |
+          echo "repo ${{github.repository}}"
           echo "branch ${{github.head_ref}}"
+          echo "pr_num ${{github.event.number}}"
+          echo "pypi_server test"
           gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch="${{github.head_ref}}" -f pr_num=${{github.event.number}} -f pypi_server='test'
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

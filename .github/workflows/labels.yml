@@ -74,10 +74,17 @@ jobs:
       - name: Prevent upload without updated version number
         if: "!contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)"
         run: echo "Cannot upload to testpypi updating the version number" && exit 1
+      - name: Remove Label
+        if: failure()
+        run: gh pr edit ${{github.event.number}} --remove-label $UPLOAD_LABEL -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
       - name: Trigger Upload
         run: gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f pypi_server='test'
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
+
+
   testpypi-upload:
     name: Verify Successful Upload to testpypi
     needs: [verify]

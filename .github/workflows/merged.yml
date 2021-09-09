@@ -16,13 +16,13 @@ jobs:
   upload:
     name: Upload to Pypi server
     needs: [env-vars]
-    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, needs.outputs.env-vars.testpypi_uploaded)
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.testpypi_uploaded)
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Upload
         run: |
           echo "Upload to prod server"
-          echo "${GITHUB_REF#refs/heads/}"
-          gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=${GITHUB_REF#refs/heads/} -f pr_num=${{github.event.number}} -f pypi_server='prod'
+          echo "branch ${{github.base_ref}}"
+          gh workflow run pypi_upload.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch=$"${{github.base_ref}}" -f pr_num=${{github.event.number}} -f pypi_server='prod'
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

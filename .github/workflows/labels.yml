@@ -1,7 +1,7 @@
 name: Labeled Events
 on:
   pull_request_target:
-    types: [labeled, opened, synchronize, reopened]
+    types: [labeled]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   TESTS_PASSED: tests-passed
@@ -12,6 +12,7 @@ env:
   UPLOAD_LABEL: upload2testpypi
   TESTPYPI_UPLOADED: testpypi-uploaded
   TESTPYPI_UPLOAD_FAILED: testpypi-upload-failed
+  TESTPYPI_STALE: testpypi-stale
   NON_RELEASE_LABEL: non-release
 jobs:
   verify:
@@ -106,17 +107,10 @@ jobs:
           echo "Success"
       - name: Upload Failed
         if: github.event.label.name == 'env.TESTPYPI_UPLOAD_FAILED' || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)
-        run: |
-          echo "Failure"
-          exit 1
-      - name: Stale testpypi
-        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
-        run: |
-          echo "testpypi upload made stale by new commit"
-          gh pr edit ${{github.event.number}} --remove-label $TESTPYPI_UPLOADED -R ${{github.repository}}
-          exit 1
-        env:
-          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+        run: echo "Failure" && exit 1
+      - name: Upload Stale
+        if: contains(github.event.pull_request.labels.*.name, env.TESTPYPI_STALE)
+        run: echo "Testpypi upload is stale" && exit 1
       - name: Non release
         if: contains(github.event.pull_request.labels.*.name, needs.verify.outputs.non_release_label)
         run: |

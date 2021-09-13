@@ -1,6 +1,7 @@
 name: Labeled Events
 on:
   pull_request_target:
+    branches: [main]
     types: [labeled]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal

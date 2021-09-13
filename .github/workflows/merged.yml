@@ -1,6 +1,7 @@
 name: Upload to PYPI on merge
 on:
   pull_request:
+    branches: [main]
     types: [closed]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal

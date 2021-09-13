@@ -36,6 +36,8 @@ jobs:
         run: |
           echo "tests passed made stale by new commit"
           gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans

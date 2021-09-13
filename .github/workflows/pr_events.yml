@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
       - name: Stale Tests
-        if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)
+        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)
         run: |
           echo "tests passed made stale by new commit"
           gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED -R ${{github.repository}}

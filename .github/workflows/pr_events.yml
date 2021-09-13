@@ -13,6 +13,9 @@ env:
   VERSION_LABEL: updated-version
   INTERNAL_REPO: NCR-Corporation/gsre-internal
   NON_RELEASE_LABEL: non-release
+  TESTPYPI_UPLOADED: testpypi-uploaded
+  TESTPYPI_STALE: testpypi-stale
+  TESTS_PASSED: tests-passed
 jobs:
   # wf level env vars are not accessible to job level if conditions but outputs of jobs in needs are
   env-vars:
@@ -21,6 +24,18 @@ jobs:
       non_release_label: ${{env.NON_RELEASE_LABEL}}  
     steps:
       - run: echo "${{toJSON(github)}}"
+      - name: Stale testpypi
+        if: github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+        run: |
+          echo "testpypi upload made stale by new commit"
+          gh pr edit ${{github.event.number}} --add-label $TESTPYPI_STALE --remove-label $TESTPYPI_UPLOADED -R ${{github.repository}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - name: Stale Tests
+        if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)
+        run: |
+          echo "tests passed made stale by new commit"
+          gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED -R ${{github.repository}}
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans

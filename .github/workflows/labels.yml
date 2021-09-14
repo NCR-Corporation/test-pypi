@@ -1,6 +1,7 @@
 name: Labeled Events
 on:
   pull_request_target:
+    branches: [main]
     types: [labeled]
 env:
   INTERNAL_REPO: NCR-Corporation/gsre-internal
@@ -25,6 +26,7 @@ jobs:
       upload_label: ${{env.UPLOAD_LABEL}}
       testpypi_uploaded: ${{env.TESTPYPI_UPLOADED}}
       testpypi_upload_failed: ${{env.TESTPYPI_UPLOAD_FAILED}}
+      testpypi_stale: ${{env.TESTPYPI_STALE}}
       non_release_label: ${{env.NON_RELEASE_LABEL}}
     steps:
       - run: echo "${{toJSON(github)}}"
@@ -96,17 +98,18 @@ jobs:
     needs: [verify]
     runs-on: ubuntu-latest
     if: |
-      ( github.event.action == 'labeled' && ( github.event.label.name == needs.verify.outputs.testpypi_uploaded || github.event.label.name == needs.verify.outputs.testpypi_upload_failed )) ||
-      ( github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, needs.verify.outputs.testpypi_uploaded )) ||
-      ( contains(github.event.pull_request.labels.*.name, needs.verify.outputs.non_release_label ))
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.testpypi_uploaded) ||
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.testpypi_upload_failed) ||
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.testpypi_stale) ||
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.non_release_label)
     steps:
       - name: Test Uploaded Package
-        if: github.event.label.name == 'env.TESTPYPI_UPLOADED' || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
+        if: contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)
         run: |
           # TODO add some tests of the package and fail this if they don't pass
           echo "Success"
       - name: Upload Failed
-        if: github.event.label.name == 'env.TESTPYPI_UPLOAD_FAILED' || contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)
+        if: contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)
         run: echo "Failure" && exit 1
       - name: Upload Stale
         if: contains(github.event.pull_request.labels.*.name, env.TESTPYPI_STALE)

@@ -39,6 +39,11 @@ jobs:
           gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
+      - name: Check if fork
+        if: github.event.pull_request.head.repo.fork == 'true'
+        run: |
+          echo "Forked PR. Admin review code before merging into a new branch to open up a PR into main"
+          exit 1
   trigger_sonar:
     needs: [env-vars]
     name: Run Sonar and Coverity Scans

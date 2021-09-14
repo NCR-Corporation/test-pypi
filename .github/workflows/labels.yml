@@ -8,6 +8,8 @@ env:
   TESTS_PASSED: tests-passed
   SONAR_FAILED: sonar-failed
   COV_FAILED: coverity-failed
+  SONAR_PASSED: sonar-passed
+  COV_PASSED: coverity-passed
   LICENSE_LABEL: has-license
   VERSION_LABEL: updated-version
   UPLOAD_LABEL: upload2testpypi
@@ -118,9 +120,9 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, needs.verify.outputs.non_release_label)
         run: |
           echo "Non-Release PR"
-          if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)}} ||  ${{contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.UPLOAD_LABEL)}}; then
+          if ${{contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.SONAR_PASSED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_PASSED)}} ||${{contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.COV_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.LICENSE_LABEL)}} ||  ${{contains(github.event.pull_request.labels.*.name, env.VERSION_LABEL)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOADED)}} || ${{contains(github.event.pull_request.labels.*.name, env.TESTPYPI_UPLOAD_FAILED)}} || ${{contains(github.event.pull_request.labels.*.name, env.UPLOAD_LABEL)}}; then
             echo "Removing label(s)"
-            gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED --remove-label $UPLOAD_LABEL -R ${{github.repository}}
+            gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_PASSED --remove-label $COV_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED --remove-label $UPLOAD_LABEL -R ${{github.repository}}
           fi
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

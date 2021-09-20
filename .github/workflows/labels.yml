@@ -62,6 +62,8 @@ jobs:
     steps:
       - name: Create Branch
         run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=fork-${{github.event.number}} -f sha=${{github.event.pull_request.base.sha}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]

@@ -39,8 +39,6 @@ jobs:
           gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED -R ${{github.repository}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
-      - name: Print SHA
-        run: echo ${{github.event.pull_request.base.sha}}
       - name: Check if fork
         if: github.event.pull_request.head.repo.fork == true
         run: |

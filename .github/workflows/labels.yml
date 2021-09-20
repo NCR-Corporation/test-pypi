@@ -57,11 +57,11 @@ jobs:
     needs: [verify]
     runs-on: ubuntu-latest
     if: |
-      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_tests_passed) || 
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_tests_passed) &&
       contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_approved)
     steps:
       - name: Create Branch
-        run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=fork-${{github.event.number}} -f sha=${{github.event.pull_request.base.sha}}
+        run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=refs/heads/fork-${{github.event.number}} -f sha=${{github.event.pull_request.base.sha}}
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
   sonar-cover:

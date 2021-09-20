@@ -14,8 +14,8 @@ jobs:
     steps:
       - name: Install diffstat
         run: |
-          apt-get update
-          apt-get install diffstat
+          sudo apt-get update
+          sudo apt-get install diffstat
       - name: Check for changed files
         run: |
           # if [ $(git diff --name-only origin/${GITHUB_BASE_REF} origin/${GITHUB_HEAD_REF} | grep -c ".github/workflows") -ge 1 ]; then

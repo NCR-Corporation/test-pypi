@@ -17,6 +17,9 @@ env:
   TESTPYPI_UPLOAD_FAILED: testpypi-upload-failed
   TESTPYPI_STALE: testpypi-stale
   NON_RELEASE_LABEL: non-release
+  WORKFLOW_FILES_FOUND: updated-workflows
+  FORK_TESTS_PASSED: fork-tests-passed
+  FORK_APPROVED: fork-approved
 jobs:
   verify:
     name: Verify author/labeler
@@ -30,6 +33,8 @@ jobs:
       testpypi_upload_failed: ${{env.TESTPYPI_UPLOAD_FAILED}}
       testpypi_stale: ${{env.TESTPYPI_STALE}}
       non_release_label: ${{env.NON_RELEASE_LABEL}}
+      fork_tests_passed: ${{env.FORK_TESTS_PASSED}}
+      fork_approved: ${{env.FORK_APPROVED}}
     steps:
       - run: echo "${{toJSON(github)}}"
       - name: Get actors permissions
@@ -47,6 +52,16 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
+  fork-approved:
+    name: Fork Approved
+    needs: [verify]
+    runs-on: ubuntu-latest
+    if: |
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_tests_passed) || 
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_approved)
+    steps:
+      - name: Create Branch
+        run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=fork-${{github.event.number}} -f sha=${{github.event.pull_request.base.sha}}
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]

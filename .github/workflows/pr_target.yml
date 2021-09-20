@@ -1,0 +1,29 @@
+
+name: Pull Request Target
+on: 
+  pull_request:
+   branches: [main]
+   types: [opened, synchronize, reopened]
+env:
+  WORKFLOW_FILES_FOUND: updated-workflows
+  FORK_TESTS_PASSED: fork-tests-passed
+jobs:
+  fork_check:
+    # if: github.event.pull_request.head.repo.fork == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install diffstat
+        run: |
+          sudo apt-get update
+          sudo apt-get install diffstat
+      - name: Check for changed files
+        run: |
+          if [ $(gh pr diff ${{github.event.number}} -R ${{github.repository}} | diffstat -l -p 0 | grep -c ".github/workflows") -ge 1 ]; then
+            echo "Modified workflow files"
+            gh pr edit ${{github.event.number}} --add-label $WORKFLOW_FILES_FOUND -R ${{github.repository}}
+          else
+            echo "No modified workflow files"
+            gh pr edit ${{github.event.number}} --add-label $FORK_TESTS_PASSED -R ${{github.repository}}
+          fi
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

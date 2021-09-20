@@ -19,7 +19,7 @@ jobs:
       - name: Check for changed files
         run: |
           # if [ $(git diff --name-only origin/${GITHUB_BASE_REF} origin/${GITHUB_HEAD_REF} | grep -c ".github/workflows") -ge 1 ]; then
-          echo $(git diff --name-only origin/${GITHUB_BASE_REF} origin/${GITHUB_HEAD_REF})
+          # echo $(git diff --name-only origin/${GITHUB_BASE_REF} origin/${GITHUB_HEAD_REF})
           if [ $(gh pr diff ${{github.event.number}} | diffstat -l -p 0 | grep -c ".github/workflows") -ge 1 ]; then
             echo "Modified workflow files"
             gh pr edit ${{github.event.number}} --add-label $WORKFLOW_FILES_FOUND

@@ -7,8 +7,7 @@ on:
 env:
   WORKFLOW_FILES_FOUND: updated-workflows
   FORK_TESTS_PASSED: fork-tests-passed
-permissions:
-  pull-requests: write
+permissions: write-all
 jobs:
   fork_check:
     # if: github.event.pull_request.head.repo.fork == true

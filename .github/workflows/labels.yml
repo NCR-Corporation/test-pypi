@@ -56,14 +56,29 @@ jobs:
     name: Fork Approved
     needs: [verify]
     runs-on: ubuntu-latest
+    env:
+      new_branch: fork-${{github.event.number}}
+      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
     if: |
       contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_tests_passed) &&
       contains(github.event.pull_request.labels.*.name, needs.verify.outputs.fork_approved)
     steps:
       - name: Create Branch
-        run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=refs/heads/fork-${{github.event.number}} -f sha=${{github.event.pull_request.base.sha}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+        run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=refs/heads/${new_branch} -f sha=${{github.event.pull_request.base.sha}}
+      - name: Update base branch
+        run: gh pr edit ${{github.event.number}} --base ${new_branch} -R ${{github.repository}}
+      - name: Merge pr
+        id: fork
+        run: | 
+          gh pr merge ${{github.event.number}}
+          echo "::set-output name=assignee::$(gh pr view ${{github.event.number}} --json assignees --jq '.assignees[0].login')"
+          echo "::set-output name=title::$(gh pr view ${{github.event.number}} --json "title" --jq '.title')"
+      - name: Open new pr
+        id: new-pr
+        run: echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}")"
+      - name: Comment link to new pr on merged fork
+        run: gh pr comment ${{github.event.number}} --body "This PR has been approved and moved to a new pr ${{steps.new-pr.outputs.link}}"
+
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]

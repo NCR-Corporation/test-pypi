@@ -75,7 +75,9 @@ jobs:
           echo "::set-output name=title::$(gh pr view ${{github.event.number}} -R ${{github.repository}} --json "title" --jq '.title')"
       - name: Open new pr
         id: new-pr
-        run: echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}" -R ${{github.repository}})"
+        run: |
+          echo "The new branch name is ${new_branch}"
+          echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}" -R ${{github.repository}})"
       - name: Comment link to new pr on merged fork
         run: gh pr comment ${{github.event.number}} --body "This PR has been approved and moved to a new pr ${{steps.new-pr.outputs.link}}" -R ${{github.repository}}
 

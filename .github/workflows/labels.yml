@@ -73,12 +73,14 @@ jobs:
           gh pr merge ${{github.event.number}} --merge -R ${{github.repository}}
           echo "::set-output name=assignee::$(gh pr view ${{github.event.number}} -R ${{github.repository}} --json assignees --jq '.assignees[0].login')"
           echo "::set-output name=title::$(gh pr view ${{github.event.number}} -R ${{github.repository}} --json "title" --jq '.title')"
+      # need to be in a git repo to create a new pr. DO NOT UPDATE REF TO HEAD BRANCH.
+      - uses: actions/checkout@v2
       - name: Open new pr
         id: new-pr
         run: |
           echo "The new branch name is ${new_branch}"
-          # echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}" -R ${{github.repository}})"
-          gh pr create -R "${{github.repository}}" --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}"
+          echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}" -R ${{github.repository}})"
+          # gh pr create -R "${{github.repository}}" --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}"
       - name: Comment link to new pr on merged fork
         run: gh pr comment ${{github.event.number}} --body "This PR has been approved and moved to a new pr ${{steps.new-pr.outputs.link}}" -R ${{github.repository}}
 

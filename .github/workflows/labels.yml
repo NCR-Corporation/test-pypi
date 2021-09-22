@@ -70,7 +70,7 @@ jobs:
       - name: Merge pr
         id: fork
         run: | 
-          gh pr merge ${{github.event.number}}
+          gh pr merge ${{github.event.number}} --merge
           echo "::set-output name=assignee::$(gh pr view ${{github.event.number}} --json assignees --jq '.assignees[0].login')"
           echo "::set-output name=title::$(gh pr view ${{github.event.number}} --json "title" --jq '.title')"
       - name: Open new pr

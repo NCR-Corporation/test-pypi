@@ -9,7 +9,7 @@ env:
   FORK_TESTS_PASSED: fork-tests-passed
 jobs:
   fork_check:
-    # if: github.event.pull_request.head.repo.fork == true
+    if: github.event.pull_request.head.repo.fork == true
     runs-on: ubuntu-latest
     steps:
       - name: Install diffstat

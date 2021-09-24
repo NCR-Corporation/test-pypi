@@ -40,7 +40,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
       - name: Check if fork
-        if: github.event.pull_request.head.repo.fork == true
+        if: github.event.pull_request.head.repo.fork == true && github.event.action != 'reopened'
         run: |
           echo "Forked PR. Admin review code before merging into a new branch to open up a PR into main"
           exit 1

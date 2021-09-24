@@ -2,7 +2,7 @@ name: Labeled Events
 on:
   pull_request_target:
     branches: 
-      - '**fork-*'
+      - 'fork-*'
     types: [closed]
 jobs:
   test:

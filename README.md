@@ -3,7 +3,7 @@
 This repo is part of the NCR open source project. In order to publish changes to the package, you must go through the PR review process.
 
 Code changes must pass several quality gates before they can be merged including:
- 1. Coverity + Sonar scans
+ 1. Coverity/Sonar scans
  2. License checks
  3. Updated version number
 

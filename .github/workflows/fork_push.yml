@@ -2,7 +2,7 @@ name: Push to fork
 on:
   push:
     branches: 
-      - '**fork-*'
+      - 'fork-*'
     types: [closed]
 jobs:
   test:

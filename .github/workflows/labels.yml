@@ -80,10 +80,10 @@ jobs:
         run: |
           echo "The new branch name is ${new_branch}"
           echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}" -R ${{github.repository}})"
-          # gh pr create -R "${{github.repository}}" --base "${{github.event.pull_request.base.repo.default_branch}}" --body "" --head "${new_branch}" --title "${{steps.fork.outputs.title}}" --assignee "${{steps.fork.outputs.assignee}}"
       - name: Comment link to new pr on merged fork
         run: gh pr comment ${{github.event.number}} --body "This PR has been approved and moved to a new pr ${{steps.new-pr.outputs.link}}" -R ${{github.repository}}
-
+      - name: Test workflow dispatch
+        run: gh workflow run dispatch_test.yml -R ${{github.repository}} -f pr_num=${{github.event.number}}
   sonar-cover:
     name: Sonar and Coverity Scans
     needs: [verify]

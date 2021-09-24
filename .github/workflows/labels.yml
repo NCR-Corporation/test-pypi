@@ -51,7 +51,7 @@ jobs:
             exit 1
           fi
         env:
-          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
   fork-approved:
     name: Fork Approved
     needs: [verify]
@@ -103,7 +103,7 @@ jobs:
         if: failure()
         run: gh pr edit ${{github.event.number}} --remove-label $UPLOAD_LABEL -R ${{github.repository}}
         env:
-          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
       - name: Trigger Upload
         run: |
           echo "repo ${{github.repository}}"
@@ -145,4 +145,4 @@ jobs:
             gh pr edit ${{github.event.number}} --remove-label $TESTS_PASSED --remove-label $SONAR_PASSED --remove-label $COV_PASSED --remove-label $SONAR_FAILED --remove-label $COV_FAILED --remove-label $LICENSE_LABEL --remove-label $VERSION_LABEL --remove-label $TESTPYPI_UPLOADED --remove-label $TESTPYPI_UPLOAD_FAILED --remove-label $UPLOAD_LABEL -R ${{github.repository}}
           fi
         env:
-          GITHUB_TOKEN: ${{secrets.GA_PAT }}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}

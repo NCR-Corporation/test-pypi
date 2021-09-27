@@ -3,7 +3,7 @@
 __title__ = 'bsp_nep_hmac'
 __description__ = 'Sign request with HMAC'
 __url__ = 'https://github.com/ncr-bsp/pypi-nep-hmac'
-__version__ = '1.0.16'
+__version__ = '1.0.17'
 __author__ = 'The BSP SRE Team'
 __author_email__ = 'engineering.sitereliability@ncr.com'
 __license__ = 'proprietary'

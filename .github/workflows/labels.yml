@@ -8,8 +8,10 @@ env:
   TESTS_PASSED: tests-passed
   SONAR_FAILED: sonar-failed
   COV_FAILED: coverity-failed
+  WS_FAILED: 'whitesource-failed'
   SONAR_PASSED: sonar-passed
   COV_PASSED: coverity-passed
+  WS_PASSED_LABEL: 'whitesource-passed'
   LICENSE_LABEL: has-license
   VERSION_LABEL: updated-version
   UPLOAD_LABEL: upload2testpypi
@@ -28,6 +30,7 @@ jobs:
       tests_passed: ${{env.TESTS_PASSED}}
       sonar_failed: ${{env.SONAR_FAILED}}
       cov_failed: ${{env.COV_FAILED}}
+      ws_failed: ${{env.WS_FAILED}}
       upload_label: ${{env.UPLOAD_LABEL}}
       testpypi_uploaded: ${{env.TESTPYPI_UPLOADED}}
       testpypi_upload_failed: ${{env.TESTPYPI_UPLOAD_FAILED}}
@@ -67,20 +70,21 @@ jobs:
         run: gh api -X POST /repos/${{github.repository}}/git/refs -f ref=refs/heads/${new_branch} -f sha=${{github.event.pull_request.base.sha}}
       - name: Update base branch
         run: gh pr edit ${{github.event.number}} --base ${new_branch} -R ${{github.repository}}
-  sonar-cover:
-    name: Sonar and Coverity Scans
+  test-scans:
+    name: Sonar, Coverity and Whitesource Scans
     needs: [verify]
     runs-on: ubuntu-latest
     if: |
       contains(github.event.pull_request.labels.*.name, needs.verify.outputs.tests_passed) || 
       contains(github.event.pull_request.labels.*.name, needs.verify.outputs.sonar_failed) || 
-      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.cov_failed)
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.cov_failed) ||
+      contains(github.event.pull_request.labels.*.name, needs.verify.outputs.ws_failed)
     steps:
       - name: Tests Passed
         if: contains(github.event.pull_request.labels.*.name, env.TESTS_PASSED)
         run: echo "Success"
       - name: One or more tests have failed
-        if: contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED)
+        if: contains(github.event.pull_request.labels.*.name, env.SONAR_FAILED) || contains(github.event.pull_request.labels.*.name, env.COV_FAILED) || contains(github.event.pull_request.labels.*.name, env.WS_FAILED)
         run: |
           echo "Failure"
           exit 1

@@ -4,8 +4,22 @@ on:
     branches: 
       - 'fork-*'
     types: [closed]
+
+env:
+  WORKFLOW_FILES_FOUND: updated-workflows
+  FORK_TESTS_PASSED: fork-tests-passed
 jobs:
-  test:
+  env-vars:
+    runs-on: ubuntu-latest
+    outputs:
+      workflow_files_found: ${{env.WORKFLOW_FILES_FOUND}}
+      fork_tests_passed: ${{env.FORK_TESTS_PASSED}}
+    steps:
+      - run: echo "${{toJSON(github)}}"
+  open-pr:
+    name: Open new pull request from fork
+    needs: [env-vars]
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.fork_tests_passed) && !contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.workflow_files_found)
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}

@@ -8,6 +8,7 @@ env:
   SONAR_PROJECT_KEY: gsre-pypi-test
   SONAR_TOKEN_KEY: gsre-pypi-test-sonar-token
   COV_STREAM: cov-gsre-pypi-test
+  WS_PROJECT_NAME: gsre-test-pipeline
   LICENSE_FILE: LICENSE
   VERSION_FILE: src/__version__.py
   LICENSE_LABEL: has-license
@@ -44,17 +45,16 @@ jobs:
         run: |
           echo "Forked PR. Admin review code before merging into a new branch to open up a PR into main"
           exit 1
-  trigger_sonar:
+  trigger_scans:
     needs: [env-vars]
-    name: Run Sonar and Coverity Scans
+    name: Run Sonar, Coverity and Whitesource Scans
     if: "!contains(github.event.pull_request.labels.*.name, needs.env-vars.outputs.non_release_label)"
     runs-on: ubuntu-latest
     steps:
       - name: Call Sonar and coverity test
         run: |
           echo "branch ${{github.head_ref}}"
-          gh workflow run sonar_cover.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch="${{github.head_ref}}" -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}}
-          echo "Skipping this for now"
+          gh workflow run run_scans.yml -R $INTERNAL_REPO -f repo=${{github.repository}} -f branch="${{github.head_ref}}" -f pr_num=${{github.event.number}} -f sonar_project_key=${{env.SONAR_PROJECT_KEY}} -f sonar_token_key=${{env.SONAR_TOKEN_KEY}} -f cov_stream=${{env.COV_STREAM}} -f ws_project_name=${{env.WS_PROJECT_NAME}}
         env:
           GITHUB_TOKEN: ${{secrets.GA_PAT }}
   license_check:

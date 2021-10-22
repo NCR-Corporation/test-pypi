@@ -53,8 +53,8 @@ def sign(request: PreparedRequest, keys: HmacKey) -> PreparedRequest:
         request.headers["Date"] = datetime.strftime(datetime.now(timezone.utc), "%a, %d %b %Y %H:%M:%S %Z").replace("UTC", "GMT")
         headers["date"] = request.headers["Date"]
 
-    request_date = datetime.strptime(headers["date"], "%a, %d %b %Y %H:%M:%S %Z")
-    special_signing_date = f"{request_date.isoformat().split('.')[0]}.000Z"
+    request_date = datetime.strptime(headers["date"], "%a, %d %b %Y %H:%M:%S %Z").replace(tzinfo=timezone.utc)
+    special_signing_date = f"{request_date.isoformat().split('+')[0].split('.')[0]}.000Z"
     key_bytes = f"{keys.secret_key}{special_signing_date}".encode('utf-8')
     content_bytes = content_str.encode('utf-8')
 

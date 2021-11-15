@@ -32,7 +32,7 @@ setup(
     author=about['__author__'],
     author_email=about['__author_email__'],
     url=about['__url__'],
-    packages=[about['__title__']] + [f'{about["__title__"]}.{x}' for x in find_packages(os.path.join(here, 'src'))],
+    packages=[about['__title__']] + [f'{about["__title__"]}.{x}' for x in find_packages(os.path.join(here, 'src'), exclude=["test"])],
     package_data={},
     package_dir={about['__title__']: 'src'},
     include_package_data=True,

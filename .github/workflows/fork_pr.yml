@@ -40,9 +40,10 @@ jobs:
         id: new-pr
         run: |
           echo "The new branch name is ${new_branch}"
-          echo "::set-output name=link::$(gh pr create --base "${{github.event.pull_request.base.repo.default_branch}}" --body-file $PULL_REQUEST_TEMPLATE  --head "$head_branch" --title "$title" --assignee "$assignee" -R ${{github.repository}})"
+          echo "::set-output name=link::$(gh pr create --base "$base_branch" --body-file $PULL_REQUEST_TEMPLATE  --head "$head_branch" --title "$title" --assignee "$assignee" -R ${{github.repository}})"
         env:
           head_branch: ${{steps.fork.outputs.name}}
+          base_branch: ${{github.event.pull_request.base.repo.default_branch}}
           assignee: ${{steps.fork.outputs.assignee}}
           title:  ${{steps.fork.outputs.title}}
           GITHUB_TOKEN: ${{secrets.GA_PAT }}

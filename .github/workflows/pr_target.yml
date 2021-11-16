@@ -7,7 +7,7 @@ on:
 env:
   WORKFLOW_FILES_FOUND: updated-workflows
   FORK_TESTS_PASSED: fork-tests-passed
-  FORK_PR_TEMPLATE: fork_pr_template.md
+  FORK_PR_TEMPLATE: .github/fork_pull_request_template.md
 jobs:
   fork_check:
     if: github.event.pull_request.head.repo.fork == true
@@ -17,20 +17,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install diffstat
-      - name: Create Temp PR Template
-        run: |
-          cat <<EOT >> $FORK_PR_TEMPLATE
-          # Checklist
-
-          :memo: __NOTE This is a pull request from a fork. These do not have access to secrets so some of our status checks will not work. Admins please follow the below instructions to approve and move to a new pr able to access secrets__
-
-          - [ ] verify requested changes, make sure no workflow files have been changed
-          - [ ] if workflow files exist, a label updated-workflows will be added to the pr
-          - [ ] if no workflow files found, a label fork-tests-passed will be added to the pr
-          - [ ] if everything looks good, and fork-tests-passed label has been added, add label fork-approved and wait for pr to update base branch to fork-[0-9]+
-          - [ ] once the check has run, you should be able to merge into the fork-[0-9]+ branch
-          - [ ] once all 5 of these criteria/tasks have been completed, the pr is ready to be merged and pushed to the pypi server.
-          EOT
       - name: Check for changed files
         run: |
           if [ $(gh pr diff ${{github.event.number}} -R ${{github.repository}} | diffstat -l -p 0 | grep -c ".github/workflows") -ge 1 ]; then

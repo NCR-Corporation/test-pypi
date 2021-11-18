@@ -97,7 +97,7 @@ jobs:
       - name: Check if version updated
         if: steps.label_check.outcome == 'skipped' # REMOVE AFTER SWITCH
         run: |
-          package=$(python3 setup.py --name | tr '_' '-')
+          package_name=$(python3 setup.py --name | tr '_' '-')
           version=$(python3 setup.py --version)
 
           printf "Package: ${package_name}\nVersion: ${version}\n"

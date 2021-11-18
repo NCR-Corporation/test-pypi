@@ -98,9 +98,13 @@ jobs:
         if: steps.label_check.outcome == 'skipped' # REMOVE AFTER SWITCH
         run: |
           pip install .
+          echo "Getting package step 1"
           package=$(pip freeze | grep "@ file")
+          echo "Getting package step 2"
           package=$(echo ${package%% @*})
+          echo "Getting version step 1"
           version=$(pip show $package | grep "Version: ")
+          echo "Getting version step 2"
           version=${version##Version: }
 
           printf "Package: ${package_name}\nVersion: ${version}\n"

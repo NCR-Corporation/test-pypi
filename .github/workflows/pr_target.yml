@@ -17,6 +17,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install diffstat
+      # Checkout pr template. DO NOT UPDATE REF TO HEAD BRANCH.
+      - uses: actions/checkout@v2
       - name: Check for changed files
         run: |
           if [ $(gh pr diff ${{github.event.number}} -R ${{github.repository}} | diffstat -l -p 0 | grep -c ".github/workflows") -ge 1 ]; then

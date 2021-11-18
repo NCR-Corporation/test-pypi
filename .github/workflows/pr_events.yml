@@ -98,6 +98,10 @@ jobs:
         if: steps.label_check.outcome == 'skipped' # REMOVE AFTER SWITCH
         run: |
           pip install .
+          echo "Pip freeze"
+          pip freeze
+          echo "Pip freeze with grep
+          pip freeze | grep "@ file"
           echo "Getting package step 1"
           package=$(pip freeze | grep "@ file")
           echo "Getting package step 2"

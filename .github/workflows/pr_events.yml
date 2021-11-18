@@ -97,15 +97,11 @@ jobs:
       - name: Check if version updated
         if: steps.label_check.outcome == 'skipped' # REMOVE AFTER SWITCH
         run: |
-          [ ! -f "$VERSION_FILE" ] && echo "Missing version file" && exit 1
-
-          cat <<EOT >> get_package_data.py
-          attr = {}
-          with open("$VERSION_FILE") as f:
-              exec(f.read(),attr)
-          print(f"{attr['__title__'].replace('_', '-')},{attr['__version__']}")
-          EOT
-          IFS=, read package_name version  <<< "$(python3 get_package_data.py)"
+          pip install .
+          package=$(pip freeze | grep "@ file")
+          package=$(echo ${package%% @*})
+          version=$(pip show $package | grep "Version: ")
+          version=${version##Version: }
 
           printf "Package: ${package_name}\nVersion: ${version}\n"
           # TODO switch to prod pypi after testing finished
